@@ -74,7 +74,8 @@ def log_progress(message):
 
 # Testing the ETL process
 # Log the initialization of the ETL process 
-log_progress("ETL Job Started") 
+# log_progress("ETL Job Started")
+print(log_progress("ETL Job Started"))
  
 # Log the beginning of the Extraction process 
 log_progress("Extract phase Started") 
