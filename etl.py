@@ -19,34 +19,41 @@ def extract_from_json(file_to_process):
 
 # Extract data from xml
 def extract_from_xml(file_to_process): 
-    dataframe = pd.DataFrame(columns=["name", "height", "weight"]) 
-    tree = ET.parse(file_to_process) 
-    root = tree.getroot() 
-    for person in root: 
-        name = person.find("name").text 
-        height = float(person.find("height").text) 
-        weight = float(person.find("weight").text) 
-        dataframe = pd.concat([dataframe, pd.DataFrame([{"name":name, "height":height, "weight":weight}])], ignore_index=True) 
+    rows = []
+    tree = ET.parse(file_to_process)
+    root = tree.getroot()
+    for person in root:
+        name = person.find("name").text
+        height = float(person.find("height").text)
+        weight = float(person.find("weight").text)
+        rows.append({"name": name, "height": height, "weight": weight})
+    dataframe = pd.DataFrame(rows)
     return dataframe
 
 # Identify which function to call based on the type of file
-def extract(): 
-    extracted_data = pd.DataFrame(columns=['name','height','weight']) # create an empty data frame to hold extracted data 
-     
-    # process all csv files, except the target file
-    for csvfile in glob.glob("*.csv"): 
-        if csvfile != target_file:  # check if the file is not the target file
-            extracted_data = pd.concat([extracted_data, pd.DataFrame(extract_from_csv(csvfile))], ignore_index=True) 
-         
-    # process all json files 
-    for jsonfile in glob.glob("*.json"): 
-        extracted_data = pd.concat([extracted_data, pd.DataFrame(extract_from_json(jsonfile))], ignore_index=True) 
-     
-    # process all xml files 
-    for xmlfile in glob.glob("*.xml"): 
-        extracted_data = pd.concat([extracted_data, pd.DataFrame(extract_from_xml(xmlfile))], ignore_index=True) 
-         
-    return extracted_data 
+def extract():
+    extracted_data = pd.DataFrame(columns=['name','height','weight'])
+    for csvfile in glob.glob("*.csv"):
+        if csvfile != target_file:
+            new_data = extract_from_csv(csvfile)
+            if extracted_data.empty:
+                extracted_data = new_data
+            else:
+                extracted_data = pd.concat([extracted_data, new_data], ignore_index=True)
+    # Repeat similar logic for JSON and XML
+    for jsonfile in glob.glob("*.json"):
+        new_data = extract_from_json(jsonfile)
+        if extracted_data.empty:
+            extracted_data = new_data
+        else:
+            extracted_data = pd.concat([extracted_data, new_data], ignore_index=True)
+    for xmlfile in glob.glob("*.xml"):
+        new_data = extract_from_xml(xmlfile)
+        if extracted_data.empty:
+            extracted_data = new_data
+        else:
+            extracted_data = pd.concat([extracted_data, new_data], ignore_index=True)
+    return extracted_data
 
 # Convert the height from inches to meters and weight from pounds to kilograms
 def transform(data): 
